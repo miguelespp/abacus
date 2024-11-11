@@ -5,6 +5,9 @@ import {
   createColumnHelper,
 } from "@tanstack/react-table";
 import type { DocumentView } from "@/types/Document";
+import SearchBar from "../components/SearchBar";
+import { useState } from "react";
+import AddButton from "../components/AddButton";
 
 const data: DocumentView[] = [
   {
@@ -74,6 +77,7 @@ const columns = [
 ];
 
 const Documentos = () => {
+  const [search, setSearch] = useState<string>("");
   const table = useReactTable<DocumentView>({
     columns,
     data,
@@ -82,7 +86,11 @@ const Documentos = () => {
 
   return (
     <div className="p-4">
-      <h2 className="text-2xl font-semibold mb-4">Lista de Usuarios</h2>
+      <h2 className="text-2xl font-semibold mb-4">Lista de Libros</h2>
+      <div className="my-2 flex justify-between space-x-2 px-2">
+        <SearchBar search={search} setSearch={setSearch} />
+        <AddButton object="document" />
+      </div>
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-lg">
           <thead>
