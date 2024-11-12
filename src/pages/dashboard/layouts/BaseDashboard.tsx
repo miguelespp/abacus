@@ -1,6 +1,6 @@
 import { useState } from "react";
-import NavBar from "../components/NavBar";
-import Header from "../components/Header";
+import NavBar from "../Components/NavBar";
+import Header from "../Components/Header";
 import { Outlet } from "react-router-dom";
 
 const BaseDashboard = () => {

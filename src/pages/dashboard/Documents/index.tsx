@@ -5,10 +5,10 @@ import {
   createColumnHelper,
 } from "@tanstack/react-table";
 import type { DocumentView } from "@/types/Document";
-import SearchBar from "../components/SearchBar";
+import SearchBar from "../Components/SearchBar";
 import { useState } from "react";
-import AddButton from "../components/AddButton";
-import Select, { Option } from "../components/Select";
+import AddButton from "../Components/AddButton";
+import Select, { Option } from "../Components/Select";
 
 const data: DocumentView[] = [
   {
