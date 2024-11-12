@@ -7,7 +7,7 @@ const BaseDashboard = () => {
   const [selectOption, setSelectOption] = useState("Home");
 
   return (
-    <div className="flex min-h-screen m-4 gap-1">
+    <div className="flex min-h-screen gap-1">
       <NavBar
         selectedOption={selectOption}
         setSelectedOption={setSelectOption}

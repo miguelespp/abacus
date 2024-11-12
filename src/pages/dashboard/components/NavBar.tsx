@@ -7,7 +7,7 @@ export interface NavBarProps {
 
 const NavBar = ({ selectedOption, setSelectedOption }: NavBarProps) => {
   return (
-    <nav className="flex-none bg-gray-700 text-white min-h-screen border flex flex-col rounded-2xl">
+    <nav className="flex-none bg-gray-700 text-white min-h-screen flex flex-col rounded-r-2xl">
       <div className={"my-4 text-2xl font-bold flex justify-center"}>
         <img src="/src/assets/NavLogo.png" alt="causa" className="size-20" />
       </div>
