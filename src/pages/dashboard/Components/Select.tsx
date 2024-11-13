@@ -38,7 +38,7 @@ const Select = ({ options, placeholder, onChange }: SelecProps) => {
   };
 
   return (
-    <div className="relative w-64 my-2">
+    <div className="relative w-48 my-2">
       <div
         className="bg-white border border-gray-300 rounded-md shadow-sm p-2 flex justify-between items-center cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}

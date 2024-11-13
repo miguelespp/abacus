@@ -5,7 +5,7 @@ interface SearchBarProps {
 
 const SearchBar = ({ search, setSearch }: SearchBarProps) => {
   return (
-    <div className="flex-1">
+    <div className="flex-1 place-content-center">
       <input
         type="text"
         placeholder="Search by title, isbn or publisher..."
