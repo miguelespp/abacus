@@ -101,7 +101,7 @@ const Documentos = () => {
   return (
     <div className="p-6">
       <h2 className="text-2xl font-semibold mb-4">Books List</h2>
-      <div className="px-4 bg-gray-400 rounded-xl mb-4 h-fit pt-2">
+      <div className="px-4 bg-gray-200 rounded-xl mb-4 h-fit pt-2">
         <span className="text-xl ml-2 mt-6">Filter by</span>
         <div className="mt-1 flex justify-between space-x-4 px-2">
           <Select

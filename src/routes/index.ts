@@ -4,6 +4,7 @@ import Home from "../pages/home";
 import BaseDashboard from "../pages/dashboard/layouts/BaseDashboard";
 import Documentos from "../pages/dashboard/Documents";
 import Login from "@/pages/auth/Login";
+import DocumentForm from "@/pages/dashboard/CreateDocuments";
 
 const routes: RouteObject[] = [
   {
@@ -21,6 +22,10 @@ const routes: RouteObject[] = [
       {
         path: "documents",
         element: createElement(Documentos),
+      },
+      {
+        path: "document/create",
+        element: createElement(DocumentForm),
       },
     ],
   },
