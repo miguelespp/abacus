@@ -15,7 +15,7 @@ const Login = () => {
   } = useForm<LoginFormInputs>();
 
   const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
-    const response = await Api.get("/login", data)
+    await Api.post("/login", data)
       .then((response) => {
         console.log(response);
       })
@@ -42,8 +42,14 @@ const Login = () => {
         <h2 className="text-2xl font-bold text-center text-blue-600">ABACUS</h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
-            <label className="block text-gray-700 font-semibold">Usuario</label>
+            <label
+              htmlFor="username"
+              className="block text-gray-700 font-semibold"
+            >
+              Usuario
+            </label>
             <input
+              id="username"
               {...register("username", {
                 required: "El usuario es obligatorio",
               })}
@@ -57,10 +63,14 @@ const Login = () => {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-semibold">
+            <label
+              htmlFor="password"
+              className="block text-gray-700 font-semibold"
+            >
               Contraseña
             </label>
             <input
+              id="password"
               {...register("password", {
                 required: "La contraseña es obligatoria",
               })}
