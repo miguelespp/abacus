@@ -2,11 +2,19 @@ import type { Document } from "@/types/Document";
 import { Controller, useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
 import ToggleSwitch from "../Components/ToggleButton";
+import { useEffect, useState } from "react";
+import Api from "@/services/Api";
+import type { Language } from "@/types/Language";
+import type { Publisher } from "@/types/Publisher";
+import { Upload } from "lucide-react";
 
 const DocumentForm: React.FC = () => {
+  const [languages, setLanguages] = useState<Language[]>();
+  const [publishers, setPublishers] = useState<Publisher[]>();
   const {
     register,
     control,
+    watch,
     handleSubmit,
     formState: { errors },
   } = useForm<Document>({
@@ -15,8 +23,42 @@ const DocumentForm: React.FC = () => {
     },
   });
 
-  const onSubmit: SubmitHandler<Document> = (data) => {
-    console.log(data);
+  const formats: { id: number; name: string }[] = [
+    { id: 1, name: "Book" },
+    { id: 2, name: "Magazine" },
+    { id: 3, name: "Newspaper" },
+    { id: 4, name: "Journal" },
+    { id: 5, name: "Thesis" },
+    { id: 6, name: "Report" },
+    { id: 7, name: "Manuscript" },
+    { id: 8, name: "Audio" },
+    { id: 9, name: "Video" },
+    { id: 10, name: "Map" },
+    { id: 11, name: "Photograph" },
+    { id: 12, name: "Painting" },
+    { id: 13, name: "Drawing" },
+    { id: 14, name: "Sculpture" },
+    { id: 15, name: "Artifact" },
+    { id: 16, name: "Other" },
+  ];
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const languageResponse = await Api.get<Language[]>("/languages");
+      const languages = languageResponse.data;
+      setLanguages(languages);
+
+      const publishersResponse = await Api.get<Publisher[]>("/publishers");
+      const publishers = publishersResponse.data;
+      setPublishers(publishers);
+    };
+    fetchData();
+  }, []);
+
+  const onSubmit: SubmitHandler<Document> = async (data) => {
+    // falta configurar adecuadamente
+    const response = await Api.post<Document>("/postear/documento", data);
+    console.log(response.data);
   };
 
   return (
@@ -52,7 +94,13 @@ const DocumentForm: React.FC = () => {
           </label>
           <input
             id="isbn"
-            {...register("isbn", { required: "ISBN is required" })}
+            {...register("isbn", {
+              required: "ISBN is required",
+              validate: (value) =>
+                value.length === 13 ||
+                value.length === 10 ||
+                "ISBN must be 10 or 13 characters",
+            })}
             className="mt-1 p-2 block w-full border rounded-md shadow-sm"
             type="text"
           />
@@ -71,7 +119,7 @@ const DocumentForm: React.FC = () => {
         </label>
         <textarea
           id="description"
-          {...register("description", { required: "Description is required" })}
+          {...register("description")}
           className="mt-1 p-2 block w-full border rounded-md shadow-sm resize-none overflow-auto"
           rows={3}
         />
@@ -90,13 +138,18 @@ const DocumentForm: React.FC = () => {
           >
             Cover URL
           </label>
-          <input
-            id="cover_url"
-            {...register("cover_url", { required: "Cover URL is required" })}
-            className="mt-1 p-2 block w-full border rounded-md shadow-sm"
-            type="file"
-            accept="image/*"
-          />
+          <div className="size-fit relative">
+            <div className="flex items-center justify-center h-full w-full absolute">
+              <Upload className="h-max" />
+            </div>
+            <input
+              id="cover_url"
+              {...register("cover_url")}
+              className="mt-1 p-2 block w-full border-4 rounded-md shadow-sm cursor-pointer opacity-0 "
+              type="file"
+              accept="image/*"
+            />
+          </div>
           {errors.cover_url && (
             <span className="text-red-500 text-sm">
               {errors.cover_url.message}
@@ -113,7 +166,7 @@ const DocumentForm: React.FC = () => {
           <input
             id="acquisition_date"
             {...register("acquisition_date", {
-              required: "Publication date is required",
+              valueAsDate: true,
             })}
             className="mt-1 p-2 block w-full border rounded-md shadow-sm"
             type="date"
@@ -136,7 +189,10 @@ const DocumentForm: React.FC = () => {
           </label>
           <input
             id="edition"
-            {...register("edition", { required: "Edition is required" })}
+            {...register("edition", {
+              valueAsNumber: true,
+              min: { value: 0, message: "Edition must be a positive number" },
+            })}
             className="mt-1 p-2 block w-full border rounded-md shadow-sm"
             type="number"
           />
@@ -157,7 +213,11 @@ const DocumentForm: React.FC = () => {
           <input
             id="total_pages"
             {...register("total_pages", {
-              required: "total_pages is required",
+              valueAsNumber: true,
+              min: {
+                value: 0,
+                message: "Total pages must be a positive number",
+              },
             })}
             className="mt-1 p-2 block w-full border rounded-md shadow-sm"
             type="number"
@@ -171,17 +231,6 @@ const DocumentForm: React.FC = () => {
       </div>
 
       <div className="flex justify-between gap-8 place-content-start">
-        <div className="mb-4 flex-1 flex space-x-2 place-content-center">
-          <span className="my-auto">External Lend Allowed</span>
-          <Controller
-            name="external_lend_allowed"
-            control={control}
-            render={({ field }) => (
-              <ToggleSwitch value={field.value} onChange={field.onChange} />
-            )}
-          />
-        </div>
-
         <div className="mb-4 flex-1">
           <label
             htmlFor="price"
@@ -192,7 +241,6 @@ const DocumentForm: React.FC = () => {
           <input
             id="price"
             {...register("base_price", {
-              required: "Price is required",
               valueAsNumber: true,
               min: { value: 0, message: "Price must be a positive number" },
             })}
@@ -204,6 +252,16 @@ const DocumentForm: React.FC = () => {
               {errors.base_price.message}
             </span>
           )}
+        </div>
+        <div className="mb-4 flex-1 flex justify-between px-8 space-x-2 place-content-center">
+          <span className="my-auto">External Lend Allowed</span>
+          <Controller
+            name="external_lend_allowed"
+            control={control}
+            render={({ field }) => (
+              <ToggleSwitch value={field.value} onChange={field.onChange} />
+            )}
+          />
         </div>
       </div>
 
@@ -217,7 +275,10 @@ const DocumentForm: React.FC = () => {
           </label>
           <input
             id="mean_rating"
-            {...register("mean_rating", { required: "Language is required" })}
+            {...register("mean_rating", {
+              valueAsNumber: true,
+              min: { value: 0, message: "Rating must be a positive number" },
+            })}
             className="mt-1 p-2 block w-full border rounded-md shadow-sm"
             type="number"
           />
@@ -238,7 +299,8 @@ const DocumentForm: React.FC = () => {
           <input
             id="publication_year"
             {...register("publication_year", {
-              required: "Language is required",
+              valueAsNumber: true,
+              min: { value: 1500, message: "Age was 1500 or more" },
             })}
             className="mt-1 p-2 block w-full border rounded-md shadow-sm"
             type="number"
@@ -261,7 +323,14 @@ const DocumentForm: React.FC = () => {
           </label>
           <input
             id="total_copies"
-            {...register("total_copies", { required: "Language is required" })}
+            {...register("total_copies", {
+              required: "Language is required",
+              valueAsNumber: true,
+              min: {
+                value: 0,
+                message: "Total copies must be a positive number",
+              },
+            })}
             className="mt-1 p-2 block w-full border rounded-md shadow-sm"
             type="number"
           />
@@ -282,7 +351,12 @@ const DocumentForm: React.FC = () => {
           <input
             id="available_copies"
             {...register("available_copies", {
-              required: "Language is required",
+              required: "Avalible copies is required",
+              valueAsNumber: true,
+              min: { value: 0, message: "Price must be a positive number" },
+              validate: (value) =>
+                value <= watch("total_copies") ||
+                "Available copies must be less than or equal to total copies",
             })}
             className="mt-1 p-2 block w-full border rounded-md shadow-sm"
             type="number"
@@ -293,6 +367,87 @@ const DocumentForm: React.FC = () => {
             </span>
           )}
         </div>
+      </div>
+
+      <div className="flex justify-between gap-8 place-content-start">
+        <div className="flex-1 mb-4">
+          <label
+            htmlFor="language_id"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Language
+          </label>
+          <select
+            id="language_id"
+            {...register("language_id", { required: "Language is required" })}
+            className="mt-1 p-2 block w-full border rounded-md shadow-sm"
+          >
+            {languages?.map((language) => (
+              <option key={language.id} value={language.id}>
+                {language.name}
+              </option>
+            ))}
+          </select>
+          {errors.language_id && (
+            <span className="text-red-500 text-sm">
+              {errors.language_id.message}
+            </span>
+          )}
+        </div>
+
+        <div className="flex-1 mb-4">
+          <label
+            htmlFor="format_id"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Format
+          </label>
+          <select
+            id="format_id"
+            {...register("format_id", { required: "Format is required" })}
+            className="mt-1 p-2 block w-full border rounded-md shadow-sm"
+          >
+            {formats?.map((format) => (
+              <option key={format.id} value={format.id}>
+                {format.name}
+              </option>
+            ))}
+          </select>
+          {errors.format_id && (
+            <span className="text-red-500 text-sm">
+              {errors.format_id.message}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="flex justify-between gap-8 place-content-start">
+        <div className="flex-1 mb-4">
+          <label
+            htmlFor="publisher_id"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Publisher
+          </label>
+          <select
+            id="publisher_id"
+            {...register("publisher_id", { required: "Publisher is required" })}
+            className="mt-1 p-2 block w-full border rounded-md shadow-sm"
+          >
+            {publishers?.map((publisher) => (
+              <option key={publisher.id} value={publisher.id}>
+                {publisher.name}
+              </option>
+            ))}
+          </select>
+          {errors.publisher_id && (
+            <span className="text-red-500 text-sm">
+              {errors.publisher_id.message}
+            </span>
+          )}
+        </div>
+
+        <div className="flex-1 mb-4" />
       </div>
 
       <button
