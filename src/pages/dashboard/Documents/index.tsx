@@ -6,11 +6,12 @@ import {
 } from "@tanstack/react-table";
 import type { DocumentView } from "@/types/Document";
 import SearchBar from "../Components/SearchBar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddButton from "../Components/AddButton";
 import Select from "../Components/Select";
 import type { Option } from "../Components/Select";
 import PriceSlider from "../Components/Slider";
+import { useNavigate } from "react-router-dom";
 
 const data: DocumentView[] = [
   {
@@ -41,10 +42,6 @@ const data: DocumentView[] = [
 const columnHelper = createColumnHelper<DocumentView>();
 
 const columns = [
-  columnHelper.accessor("id", {
-    header: "ID",
-    cell: (info) => info.getValue(),
-  }),
   columnHelper.accessor("title", {
     header: "Title",
     cell: (info) => info.getValue(),
@@ -80,14 +77,28 @@ const columns = [
 ];
 
 const Documentos = () => {
+  const navigation = useNavigate();
+  // const [data, setData] = useState<DocumentView[]>([]);
   const [search, setSearch] = useState<string>("");
   const [filter, setFilter] = useState<Option | null>(null);
   const [rangeValues, setRangeValues] = useState([20, 80]);
+  const [page, setPage] = useState(1);
   const table = useReactTable<DocumentView>({
     columns,
     data,
     getCoreRowModel: getCoreRowModel(),
   });
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     const response = await Api.post<DocumentView[]>("/documents", {
+  //       page: 1,
+  //       page_size: 10,
+  //     });
+  //     setData(response.data);
+  //   };
+  //   fetchData();
+  // }, [page]);
 
   const handleSubmit = () => {
     const data = {
@@ -108,7 +119,6 @@ const Documentos = () => {
             options={[
               { value: "title", label: "Title" },
               { value: "isbn", label: "ISBN" },
-              { value: "publication_date", label: "Publication Date" },
               { value: "edition", label: "Edition" },
             ]}
             placeholder="Select a filter option"
@@ -166,7 +176,12 @@ const Documentos = () => {
                   {row.getVisibleCells().map((cell) => (
                     <td
                       key={cell.id}
-                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      onDoubleClick={() => {
+                        navigation(
+                          `/dashboard/document/edit/${row.original.id}`,
+                        );
+                      }}
+                      className="px-6 cursor-pointer py-4 whitespace-nowrap text-sm text-gray-900"
                     >
                       {flexRender(
                         cell.column.columnDef.cell,

@@ -74,11 +74,35 @@ const DocumentForm: React.FC = () => {
 
   return (
     <div className="flex justify-around">
+      <div className="place-content-center">
+        <img
+          src="/src/assets/books.jpg"
+          alt="xd"
+          className="border my-auto rounded-full shadow-lg"
+        />
+        <div className="flex justify-end">
+          <img
+            src="/src/assets/books1.png"
+            alt="xd"
+            className="border size-32 rounded-full"
+          />
+        </div>
+      </div>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="max-w-2xl ml-20 my-10 p-4 bg-gray-200 rounded-lg shadow-md"
+        className="max-w-2xl ml-10 my-10 p-4 bg-gray-200 rounded-lg shadow-md"
       >
-        <span className="text-xl text-red-600 text">Document Info</span>
+        <span
+          className="text-xl text-red-600 text"
+          style={{
+            fontFamily: "'Edu AU VIC WA NT Pre', cursive",
+            fontOpticalSizing: "auto",
+            fontWeight: 500,
+            fontStyle: "normal",
+          }}
+        >
+          Document Info
+        </span>
         <div className="flex justify-between gap-8 place-content-start mt-4">
           <div className="flex-1 mb-4">
             <label
@@ -477,11 +501,6 @@ const DocumentForm: React.FC = () => {
           </button>
         </div>
       </form>
-      <div>
-        <Link to="/documents" className="text-blue-600 hover:underline">
-          Back to documents
-        </Link>
-      </div>
     </div>
   );
 };
