@@ -7,15 +7,15 @@ export interface NavBarProps {
 
 const NavBar = ({ selectedOption, setSelectedOption }: NavBarProps) => {
   return (
-    <nav className="flex-none bg-sky-700 text-white min-h-screen flex flex-col rounded-r-2xl">
+    <nav className="flex-none bg-cyan-800 text-white min-h-screen flex flex-col rounded-r-2xl px-10">
       <div className={"my-4 text-2xl font-bold flex justify-center"}>
-        <img src="/src/assets/NavLogo.png" alt="causa" className="size-20" />
+        <img src="/src/assets/NavLogo.png" alt="causa" className="size-28" />
       </div>
 
-      <div className="flex flex-col justify-between h-full">
+      <div className="flex flex-col justify-between h-full mt-2">
         <div className="h-auto">
-          <ul className=" cursor-pointer space-y-3 h-auto mt-4">
-            <li className="mx-6 rounded shadow-sm bg-gray-500 h-11">
+          <ul className="space-y-6 h-auto mt-3">
+            <li className="mx-2 rounded shadow-sm bg-gray-500 h-11 w-40">
               <Link
                 className="flex justify-around px-3 size-full py-2"
                 to="/dashboard"
@@ -25,7 +25,7 @@ const NavBar = ({ selectedOption, setSelectedOption }: NavBarProps) => {
                 {"Home"}
               </Link>
             </li>
-            <li className="cursor-pointer mx-6 shadow-sm rounded bg-gray-500 h-11">
+            <li className="mx-2 shadow-sm rounded bg-gray-500 h-11">
               <Link
                 className="flex justify-around px-3 py-2"
                 to="/dashboard/documents"
@@ -35,7 +35,7 @@ const NavBar = ({ selectedOption, setSelectedOption }: NavBarProps) => {
                 {"Documents"}
               </Link>
             </li>
-            <li className="cursor-pointer mx-6 shadow-sm rounded bg-gray-500 h-11">
+            <li className="mx-2 shadow-sm rounded bg-gray-500 h-11">
               <Link
                 className="flex justify-around px-3 py-2"
                 to="/dashboard/reservations"
