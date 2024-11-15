@@ -5,7 +5,7 @@ import BaseDashboard from "../pages/dashboard/layouts/BaseDashboard";
 import Documentos from "../pages/dashboard/Documents";
 import Login from "@/pages/auth/Login";
 import DocumentForm from "@/pages/dashboard/CreateDocuments";
-import AuthorForm from "@/pages/dashboard/CreateDocuments/AddAuthors";
+import AuthorManage from "@/pages/dashboard/CreateDocuments/AddAuthors";
 
 const routes: RouteObject[] = [
   {
@@ -30,7 +30,7 @@ const routes: RouteObject[] = [
       },
       {
         path: "document/edit/:id",
-        element: createElement(AuthorForm),
+        element: createElement(AuthorManage),
       },
     ],
   },
