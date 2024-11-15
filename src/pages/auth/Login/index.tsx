@@ -1,6 +1,7 @@
 import Api from "@/services/Api";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 
 type LoginFormInputs = {
   username: string;
@@ -14,14 +15,14 @@ const Login = () => {
     formState: { errors },
   } = useForm<LoginFormInputs>();
 
+  const navigate = useNavigate();
+
   const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
-    await Api.post("/login", data)
-      .then((response) => {
-        console.log(response);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    console.log(data);
+    const response = await Api.post("/login", data);
+    console.log(response.data);
+    localStorage.setItem("token", response.data.token);
+    navigate("/dashboard");
   };
 
   return (
