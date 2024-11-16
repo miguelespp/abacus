@@ -49,17 +49,30 @@ const DocumentForm: React.FC = () => {
   }, []);
 
   const onSubmit: SubmitHandler<Document> = async (data) => {
-    const response = await Api.post("/dashboard/document", data);
-
-    const id = response.data.id;
-    if (id) {
-      navigation(`/document/authors/${id}`);
-      return;
+    if (data.acquisition_date) {
+      // change to ISO format
+      data.acquisition_date = new Date(data.acquisition_date)
+        .toISOString()
+        .split("T")[0];
     }
 
-    navigation("/documents");
+    if (data.cover_url) {
+      // for default input type file returns a FileList
+      data.cover_url = data.cover_url[0];
+    }
 
-    console.log(response.data);
+    console.log(data);
+
+    const response = await Api.post("/dashboard/document", data);
+
+    if (response.status === 201) {
+      alert("Document created successfully");
+      const id = response.data.id;
+      if (id) {
+        navigation(`/document/authors/${id}`);
+        return;
+      }
+    }
   };
 
   return (
@@ -276,6 +289,7 @@ const DocumentForm: React.FC = () => {
               })}
               className="mt-1 p-2 block w-full border rounded-md shadow-sm"
               type="number"
+              step={0.01}
             />
             {errors.base_price && (
               <span className="text-red-500 text-sm">
@@ -311,6 +325,7 @@ const DocumentForm: React.FC = () => {
               })}
               className="mt-1 p-2 block w-full border rounded-md shadow-sm"
               type="number"
+              step={0.1}
             />
             {errors.mean_rating && (
               <span className="text-red-500 text-sm">
