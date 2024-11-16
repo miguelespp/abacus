@@ -6,6 +6,7 @@ import Documentos from "../pages/dashboard/Documents";
 import Login from "@/pages/auth/Login";
 import DocumentForm from "@/pages/dashboard/CreateDocuments";
 import AuthorManage from "@/pages/dashboard/CreateDocuments/AddAuthors";
+import Orders from "@/pages/dashboard/Orders";
 
 const routes: RouteObject[] = [
   {
@@ -31,6 +32,10 @@ const routes: RouteObject[] = [
       {
         path: "document/edit/:id",
         element: createElement(AuthorManage),
+      },
+      {
+        path: "orders",
+        element: createElement(Orders),
       },
     ],
   },

@@ -1,116 +1,90 @@
 import {
-  useReactTable,
-  getCoreRowModel,
-  flexRender,
   createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
 } from "@tanstack/react-table";
-import type { DocumentView } from "@/types/Document";
+import Select, { Option } from "../Components/Select";
 import SearchBar from "../Components/SearchBar";
-import { useEffect, useState } from "react";
 import AddButton from "../Components/AddButton";
-import Select from "../Components/Select";
-import type { Option } from "../Components/Select";
-import PriceSlider from "../Components/Slider";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Api from "@/services/Api";
 
-const data: DocumentView[] = [
+type OrderView = {
+  id: number;
+  order_date: Date;
+  max_return_date: Date;
+  user: string;
+};
+
+const data: OrderView[] = [
   {
     id: 1,
-    title: "Document 1",
-    isbn: "123456789",
-    description: "Description 1",
-    publication_date: new Date("2021-01-01"),
-    edition: "xcs",
-    price: 100,
-    language: "es",
-    publisher: "Publisher 1",
-  },
-  {
-    id: 2,
-    title: "Document 2",
-    isbn: "123456789",
-    description: "Description 2",
-    publication_date: new Date("2021-01-01"),
-    edition: "xcs",
-    price: 100,
-    language: "es",
-    publisher: "Publisher 2",
+    order_date: new Date(),
+    max_return_date: new Date(),
+    user: "skibidi",
   },
 ];
 
-// Configuración de columnas
-const columnHelper = createColumnHelper<DocumentView>();
+const columnHelper = createColumnHelper<OrderView>();
 
 const columns = [
-  columnHelper.accessor("title", {
-    header: "Title",
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor("isbn", {
-    header: "ISBN",
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor("description", {
-    header: "Description",
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor("publication_date", {
-    header: "Publication Date",
+  columnHelper.accessor("order_date", {
+    header: "Order Date",
     cell: (info) => info.getValue().toLocaleDateString(),
   }),
-  columnHelper.accessor("edition", {
-    header: "Edition",
-    cell: (info) => info.getValue(),
+  columnHelper.accessor("max_return_date", {
+    header: "Max Return Date",
+    cell: (info) => info.getValue().toLocaleDateString(),
   }),
-  columnHelper.accessor("price", {
-    header: "Price",
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor("language", {
-    header: "Language",
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor("publisher", {
-    header: "Publisher",
+  columnHelper.accessor("user", {
+    header: "User",
     cell: (info) => info.getValue(),
   }),
 ];
 
-const Documentos = () => {
+const Orders = () => {
   const navigation = useNavigate();
   const [search, setSearch] = useState<string>("");
   const [filter, setFilter] = useState<Option | null>(null);
-  const [rangeValues, setRangeValues] = useState([20, 80]);
+
   const [page, setPage] = useState(1);
-  const table = useReactTable<DocumentView>({
+  const [pageSize, setPageSize] = useState(10);
+  const [data, setData] = useState<OrderView[]>([]);
+
+  const paginatedData = data.slice(page * pageSize, (page + 1) * pageSize);
+
+  const table = useReactTable<OrderView>({
     columns,
-    data,
+    data: paginatedData,
     getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+    pageCount: Math.ceil(data.length / pageSize),
   });
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const response = await Api.post<DocumentView[]>("/documents", {
-  //       page: 1,
-  //       page_size: 10,
-  //     });
-  //     setData(response.data);
-  //   };
-  //   fetchData();
-  // }, [page]);
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await Api.get<OrderView[]>("/books", {
+        params: {
+          page,
+          page_size: pageSize,
+        },
+      });
+      setData(response.data);
+    };
+    fetchData();
+  }, [page, pageSize]);
 
   const handleSubmit = () => {
-    const data = {
-      search,
-      filter,
-      rangeValues,
-    };
-    console.log(data);
+    console.log("search", search);
+    console.log("filter", filter);
   };
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-semibold mb-4">Books List</h2>
+      <h2 className="text-2xl font-semibold mb-4">Orders List</h2>
+      {/* Filtros */}
       <div className="px-4 bg-gray-200 rounded-xl mb-4 h-fit pt-2">
         <span className="text-xl ml-2 mt-6">Filter by</span>
         <div className="mt-1 flex justify-between space-x-4 px-2">
@@ -135,17 +109,9 @@ const Documentos = () => {
           </div>
           <AddButton object="document" />
         </div>
-        <div className="flex space-x-2 mb-2 px-2">
-          <PriceSlider
-            min={0}
-            max={200}
-            minValue={rangeValues[0]}
-            maxValue={rangeValues[1]}
-            step={1}
-            onChange={(values) => setRangeValues(values)}
-          />
-        </div>
+        <div className="flex space-x-2 mb-2 px-2" />
       </div>
+      {/* Tabla */}
       <div className="mb-4 bg-gray-200 rounded-xl p-4">
         <div className="overflow-x-auto bg-gray-200 p-4">
           <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-lg">
@@ -194,8 +160,54 @@ const Documentos = () => {
           </table>
         </div>
       </div>
+      {/* Paginación */}
+      <div className="flex items-center justify-between mt-4">
+        <button
+          type="button"
+          onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+          disabled={page === 0}
+          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span>
+          Page {page + 1} of {Math.ceil(data.length / pageSize)}
+        </span>
+        <button
+          type="button"
+          onClick={() =>
+            setPage((prev) =>
+              Math.min(prev + 1, Math.ceil(data.length / pageSize) - 1),
+            )
+          }
+          disabled={page >= Math.ceil(data.length / pageSize) - 1}
+          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+      <div className="flex items-center mt-2">
+        <label htmlFor="pageSize" className="mr-2">
+          Rows per page:
+        </label>
+        <select
+          id="pageSize"
+          value={pageSize}
+          onChange={(e) => {
+            setPageSize(Number(e.target.value));
+            setPage(0); // Reinicia a la primera página
+          }}
+          className="border rounded px-2 py-1"
+        >
+          {[5, 10, 15].map((size) => (
+            <option key={size} value={size}>
+              {size}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 };
 
-export default Documentos;
+export default Orders;

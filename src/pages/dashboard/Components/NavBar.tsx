@@ -38,11 +38,11 @@ const NavBar = ({ selectedOption, setSelectedOption }: NavBarProps) => {
             <li className="mx-2 shadow-sm rounded bg-gray-500 h-11">
               <Link
                 className="flex justify-around px-3 py-2"
-                to="/dashboard/reservations"
-                onClick={() => setSelectedOption("Reservations")}
+                to="/dashboard/orders"
+                onClick={() => setSelectedOption("Orders")}
               >
                 <BookMarked className="size-5" />
-                {"Reservations"}
+                {"Orders"}
               </Link>
             </li>
           </ul>
