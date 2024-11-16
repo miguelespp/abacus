@@ -7,7 +7,7 @@ import Api from "@/services/Api";
 import type { Language } from "@/types/Language";
 import type { Publisher } from "@/types/Publisher";
 import { Upload } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const DocumentForm: React.FC = () => {
   const navigation = useNavigate();

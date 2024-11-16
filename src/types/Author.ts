@@ -12,4 +12,6 @@ interface AuthorView extends AuthorBase {
   id: number;
 }
 
-export type { AuthorBase, AuthorView };
+interface AuthorTable extends Pick<AuthorView, "id" | "name" | "birth_date"> {}
+
+export type { AuthorBase, AuthorView, AuthorTable };
