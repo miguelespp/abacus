@@ -38,7 +38,15 @@ const SearchBar = <T,>({
         params: { ...params, query: value },
       });
       const transformedResults = transformResults(response.data);
-      setResults(transformedResults.slice(0, 10)); // Mostrar solo los 10 primeros resultados
+      // busco si los resultados similares a la query
+
+      const results = transformedResults.filter((result) => {
+        const name = result.name.toLowerCase();
+        const query = value.toLowerCase();
+        return name.includes(query);
+      });
+
+      setResults(results.slice(0, 10)); // Mostrar solo los 10 primeros resultados
     } catch (err) {
       setError("Error al cargar resultados");
       setResults([]);
