@@ -12,33 +12,8 @@ import Select from "../Components/Select";
 import type { Option } from "../Components/Select";
 import PriceSlider from "../Components/Slider";
 import { useNavigate } from "react-router-dom";
+import Api from "@/services/Api";
 
-const data: DocumentView[] = [
-  {
-    id: 1,
-    title: "Document 1",
-    isbn: "123456789",
-    description: "Description 1",
-    publication_date: new Date("2021-01-01"),
-    edition: "xcs",
-    price: 100,
-    language: "es",
-    publisher: "Publisher 1",
-  },
-  {
-    id: 2,
-    title: "Document 2",
-    isbn: "123456789",
-    description: "Description 2",
-    publication_date: new Date("2021-01-01"),
-    edition: "xcs",
-    price: 100,
-    language: "es",
-    publisher: "Publisher 2",
-  },
-];
-
-// Configuración de columnas
 const columnHelper = createColumnHelper<DocumentView>();
 
 const columns = [
@@ -56,7 +31,8 @@ const columns = [
   }),
   columnHelper.accessor("publication_date", {
     header: "Publication Date",
-    cell: (info) => info.getValue().toLocaleDateString(),
+    cell: (info) =>
+      info.getValue() ? new Date(info.getValue()).toLocaleDateString() : "",
   }),
   columnHelper.accessor("edition", {
     header: "Edition",
@@ -82,22 +58,29 @@ const Documentos = () => {
   const [filter, setFilter] = useState<Option | null>(null);
   const [rangeValues, setRangeValues] = useState([20, 80]);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [allData, setAllData] = useState<DocumentView[]>([]);
+  const [data, setData] = useState<DocumentView[]>([]);
+
   const table = useReactTable<DocumentView>({
     columns,
     data,
     getCoreRowModel: getCoreRowModel(),
   });
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const response = await Api.post<DocumentView[]>("/documents", {
-  //       page: 1,
-  //       page_size: 10,
-  //     });
-  //     setData(response.data);
-  //   };
-  //   fetchData();
-  // }, [page]);
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await Api.get<DocumentView[]>("/books");
+      setAllData(response.data);
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    setData(allData.slice(start, end));
+  }, [page, pageSize, allData]);
 
   const handleSubmit = () => {
     const data = {
@@ -128,7 +111,7 @@ const Documentos = () => {
             <button
               type="button"
               className="px-4 py-3 bg-blue-400 rounded-xl h-fit"
-              onClick={() => handleSubmit}
+              onClick={handleSubmit}
             >
               Search
             </button>
@@ -176,9 +159,11 @@ const Documentos = () => {
                     <td
                       key={cell.id}
                       onDoubleClick={() => {
-                        navigation(
-                          `/dashboard/document/edit/${row.original.id}`,
-                        );
+                        if (row.original.id) {
+                          navigation(
+                            `/dashboard/document/authors/${row.original.id}`,
+                          );
+                        }
                       }}
                       className="px-6 cursor-pointer py-4 whitespace-nowrap text-sm text-gray-900"
                     >
@@ -192,6 +177,32 @@ const Documentos = () => {
               ))}
             </tbody>
           </table>
+        </div>
+        {/* Paginación */}
+        <div className="flex justify-between mt-4">
+          <button
+            type="button"
+            disabled={page === 1}
+            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400 disabled:bg-gray-200"
+          >
+            Previous
+          </button>
+          <span>
+            Page {page} of {Math.ceil(allData.length / pageSize)}
+          </span>
+          <button
+            type="button"
+            disabled={page >= Math.ceil(allData.length / pageSize)}
+            onClick={() =>
+              setPage((prev) =>
+                Math.min(prev + 1, Math.ceil(allData.length / pageSize)),
+              )
+            }
+            className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400 disabled:bg-gray-200"
+          >
+            Next
+          </button>
         </div>
       </div>
     </div>

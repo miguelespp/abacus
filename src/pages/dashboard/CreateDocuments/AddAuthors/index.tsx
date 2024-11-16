@@ -46,18 +46,25 @@ const AuthorsInfo = () => {
   const openDialog = () => setDialogOpen(true);
   const closeDialog = () => setDialogOpen(false);
   const [author, setAuthor] = useState(null);
+  const [data, setData] = useState<AuthorTable[]>([]);
 
   useEffect(() => {
-    if (!id) {
+    if (id === undefined) {
       navigate("/dashboard/documents");
+      return;
     }
+    const fetchData = async () => {
+      const response = await Api.get(`dashboard/document/${id}/authors`);
+      setData(response.data);
+    };
+    fetchData();
   });
 
   const handleAuthorAdd = () => {
     if (!author) {
       return;
     }
-    const response = Api.post("create/AuthorDoc", { author, book: id });
+    const response = Api.post(`dashboard/author/${author}/document/${id}`);
     console.log(response);
     alert("Author added successfully");
   };

@@ -13,6 +13,7 @@ const DocumentForm: React.FC = () => {
   const navigation = useNavigate();
   const [languages, setLanguages] = useState<Language[]>();
   const [publishers, setPublishers] = useState<Publisher[]>();
+  const [formats, setFormats] = useState<{ id: number; name: string }[]>();
   const {
     register,
     control,
@@ -25,45 +26,34 @@ const DocumentForm: React.FC = () => {
     },
   });
 
-  const formats: { id: number; name: string }[] = [
-    { id: 1, name: "Book" },
-    { id: 2, name: "Magazine" },
-    { id: 3, name: "Newspaper" },
-    { id: 4, name: "Journal" },
-    { id: 5, name: "Thesis" },
-    { id: 6, name: "Report" },
-    { id: 7, name: "Manuscript" },
-    { id: 8, name: "Audio" },
-    { id: 9, name: "Video" },
-    { id: 10, name: "Map" },
-    { id: 11, name: "Photograph" },
-    { id: 12, name: "Painting" },
-    { id: 13, name: "Drawing" },
-    { id: 14, name: "Sculpture" },
-    { id: 15, name: "Artifact" },
-    { id: 16, name: "Other" },
-  ];
-
   useEffect(() => {
     const fetchData = async () => {
-      const languageResponse = await Api.get<Language[]>("/languages");
+      const languageResponse = await Api.get<Language[]>(
+        "/dashboard/languages",
+      );
       const languages = languageResponse.data;
       setLanguages(languages);
 
-      const publishersResponse = await Api.get<Publisher[]>("/publishers");
+      const publishersResponse = await Api.get<Publisher[]>(
+        "/dashboard/publishers",
+      );
       const publishers = publishersResponse.data;
       setPublishers(publishers);
+
+      const formatsResponse =
+        await Api.get<{ id: number; name: string }[]>("/dashboard/formats");
+      const formats = formatsResponse.data;
+      setFormats(formats);
     };
     fetchData();
   }, []);
 
   const onSubmit: SubmitHandler<Document> = async (data) => {
-    // falta configurar adecuadamente
-    const response = await Api.post("/postear/documento", data);
+    const response = await Api.post("/dashboard/document", data);
 
     const id = response.data.id;
     if (id) {
-      navigation(`/document/edit/${id}`);
+      navigation(`/document/authors/${id}`);
       return;
     }
 
