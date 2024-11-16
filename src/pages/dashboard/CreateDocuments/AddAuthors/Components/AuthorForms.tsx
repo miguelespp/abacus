@@ -32,10 +32,15 @@ const AuthorForm = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const gendersRespone = await Api.get<Gender[]>("/genders");
-      setGenders(gendersRespone.data);
-      const countriesRespone = await Api.get<Country[]>("/countries");
+      const countriesRespone = await Api.get<Country[]>("/dashboard/countries");
       setCountries(countriesRespone.data);
+      const GenderData: Gender[] = [
+        { id: 1, name: "Masculino" },
+        { id: 2, name: "Femenino" },
+        { id: 3, name: "Prefiero no decirlo" },
+        { id: 4, name: "Otro" },
+      ];
+      setGenders(GenderData);
     };
     fetchData();
   }, []);
