@@ -25,8 +25,39 @@ const AuthorForm = () => {
     formState: { errors },
   } = useForm<AuthorBase>();
 
+  const handleFileToBase64 = (file: File) => {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const isValidDate = (date) => {
+    return date instanceof Date && !isNaN(date);
+  };
+
   const onSubmit: SubmitHandler<AuthorBase> = async (data) => {
-    const res = await Api.post("/authors", data);
+    console.log(data.birth_date.toISOString().split("T")[0]);
+    const request = {
+      name: data.name,
+      birthdate: isValidDate(data.birth_date)
+        ? data.birth_date.toISOString().split("T")[0]
+        : null,
+      bio: data.bio,
+      deathdate: isValidDate(data.death_date)
+        ? data.death_date.toISOString().split("T")[0]
+        : null,
+      image_url:
+        data.image_url && data.image_url.length > 0
+          ? await handleFileToBase64(data.image_url[0])
+          : null,
+      gender_id: data.gender_id,
+      country_id: data.country_id,
+    };
+    console.log(request);
+    const res = await Api.post("/dashboard/author", request);
     console.log(res);
   };
 
@@ -124,7 +155,6 @@ const AuthorForm = () => {
             <input
               id="death_date"
               {...register("death_date", {
-                required: "Death date is required",
                 valueAsDate: true,
               })}
               className="mt-1 p-2 block w-full border rounded-md shadow-sm"
@@ -174,7 +204,10 @@ const AuthorForm = () => {
             </label>
             <select
               id="gender_id"
-              {...register("gender_id", { required: "Gender is required" })}
+              {...register("gender_id", {
+                required: "Gender is required",
+                valueAsNumber: true,
+              })}
               className="mt-1 p-2 block w-full border rounded-md shadow-sm bg-white"
             >
               {genders?.map((gender) => (
@@ -199,7 +232,10 @@ const AuthorForm = () => {
             </label>
             <select
               id="country_id"
-              {...register("country_id", { required: "Format is required" })}
+              {...register("country_id", {
+                required: "Country is required",
+                valueAsNumber: true,
+              })}
               className="mt-1 p-2 block w-full border rounded-md shadow-sm bg-white"
             >
               {countries?.map((country) => (
