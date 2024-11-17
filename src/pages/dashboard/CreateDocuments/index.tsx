@@ -41,6 +41,7 @@ const DocumentForm: React.FC = () => {
       );
       const languages = languageResponse.data;
       setLanguages(languages);
+      console.log(languages);
 
       const publishersResponse = await Api.get<Publisher[]>(
         "/dashboard/publishers",
@@ -78,14 +79,13 @@ const DocumentForm: React.FC = () => {
       data.cover_url = data.cover_url[0];
 
       const coverUrl = await handleFileToBase64(data.cover_url);
-      console.log(coverUrl);
-      data.cover_url = coverUrl;
+      data.cover_url = coverUrl.split(",")[1];
+      console.log(data.cover_url);
     } else {
       data.cover_url = null;
     }
 
     console.log(data);
-    return;
     const response = await Api.post("/dashboard/document", data);
     console.log(response);
 
