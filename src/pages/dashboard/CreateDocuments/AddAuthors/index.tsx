@@ -141,7 +141,7 @@ const AuthorsInfo = () => {
           </div>
           <button
             type="button"
-            onClick={() => handleAuthorAdd()}
+            onClick={() => handleAuthorAdd}
             className="bg-blue-500 h-10 hover:bg-blue-700 text-white font-bold w-40 py-2 px-4 rounded "
           >
             Add author

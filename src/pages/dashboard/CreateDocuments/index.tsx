@@ -505,7 +505,7 @@ const DocumentForm: React.FC = () => {
         </div>
 
         <div className="flex justify-end">
-          <span className="text-red-600 text-sm pr-4">
+          {/* <span className="text-red-600 text-sm pr-4">
             Not found publisher?
           </span>
           <button
@@ -522,7 +522,7 @@ const DocumentForm: React.FC = () => {
             onClose={closeDialog}
           >
             <PublisherForm />
-          </Dialog>
+          </Dialog> */}
           <button
             type="submit"
             className="w-40 ml-auto py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
