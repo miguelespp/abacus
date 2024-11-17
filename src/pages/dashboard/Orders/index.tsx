@@ -83,8 +83,10 @@ const Orders = () => {
 
   const fetchData = async () => {
     const response = await Api.get<OrderView[]>("/dashboard/orders", {});
-    setData(response.data);
-    setFilteredData(response.data);
+    if (response.status === 200 && response.data) {
+      setData(response.data);
+      setFilteredData(response.data);
+    }
   };
 
   useEffect(() => {

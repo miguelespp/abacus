@@ -55,7 +55,7 @@ const Documentos = () => {
   const navigation = useNavigate();
   const [search, setSearch] = useState<string>("");
   const [filter, setFilter] = useState<Option | null>(null);
-  const [rangeValues, setRangeValues] = useState([20, 80]);
+  const [rangeValues, setRangeValues] = useState([0, 80]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [allData, setAllData] = useState<DocumentView[]>([]);
@@ -71,8 +71,10 @@ const Documentos = () => {
   useEffect(() => {
     const fetchData = async () => {
       const response = await Api.get<DocumentView[]>("/dashboard/documents");
-      setAllData(response.data);
-      setFilteredData(response.data);
+      if (response.status === 200 && response.data) {
+        setAllData(response.data);
+        setFilteredData(response.data);
+      }
     };
     fetchData();
   }, []);
