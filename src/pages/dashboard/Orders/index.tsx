@@ -6,79 +6,130 @@ import {
 } from "@tanstack/react-table";
 import Select, { Option } from "../Components/Select";
 import SearchBar from "../Components/SearchBar";
-import AddButton from "../Components/AddButton";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Api from "@/services/Api";
 
 type OrderView = {
   id: number;
-  order_date: Date;
-  max_return_date: Date;
+  order_date: string;
+  max_return_date: string;
   user: string;
 };
 
-const data: OrderView[] = [
-  {
-    id: 1,
-    order_date: new Date(),
-    max_return_date: new Date(),
-    user: "skibidi",
-  },
-];
-
 const columnHelper = createColumnHelper<OrderView>();
-
-const columns = [
-  columnHelper.accessor("order_date", {
-    header: "Order Date",
-    cell: (info) => info.getValue().toLocaleDateString(),
-  }),
-  columnHelper.accessor("max_return_date", {
-    header: "Max Return Date",
-    cell: (info) => info.getValue().toLocaleDateString(),
-  }),
-  columnHelper.accessor("user", {
-    header: "User",
-    cell: (info) => info.getValue(),
-  }),
-];
 
 const Orders = () => {
   const navigation = useNavigate();
   const [search, setSearch] = useState<string>("");
   const [filter, setFilter] = useState<Option | null>(null);
 
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [data, setData] = useState<OrderView[]>([]);
+  const [filteredData, setFilteredData] = useState<OrderView[]>([]);
 
-  const paginatedData = data.slice(page * pageSize, (page + 1) * pageSize);
+  const paginatedData = filteredData.slice(
+    page * pageSize,
+    (page + 1) * pageSize,
+  );
+
+  const columns = [
+    columnHelper.accessor("order_date", {
+      header: "Order Date",
+      cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor("max_return_date", {
+      header: "Max Return Date",
+      cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor("user", {
+      header: "User",
+      cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor("id", {
+      cell: (info) => (
+        <button
+          type="button"
+          className="px-4 py-2 bg-red-400 rounded-xl"
+          onClick={() => {
+            handleDestroy(info.getValue());
+          }}
+        >
+          {"CANCEL"}
+        </button>
+      ),
+    }),
+  ];
+
+  const handleDestroy = async (id: number) => {
+    console.log("Deleting document", id);
+    const response = await Api.post(`/dashboard/order/${id}`);
+    console.log("Document deleted", response);
+    if (response.status === 200) {
+      setData(data.filter((order) => order.id !== id));
+    } else {
+      console.error("Error deleting document", response.data);
+    }
+  };
 
   const table = useReactTable<OrderView>({
     columns,
     data: paginatedData,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
-    pageCount: Math.ceil(data.length / pageSize),
+    pageCount: Math.ceil(filteredData.length / pageSize),
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await Api.get<OrderView[]>("/books", {
-        params: {
-          page,
-          page_size: pageSize,
-        },
-      });
-      setData(response.data);
-    };
-    fetchData();
-  }, [page, pageSize]);
+  const fetchData = async () => {
+    const response = await Api.get<OrderView[]>("/dashboard/orders", {});
+    setData(response.data);
+    setFilteredData(response.data);
+  };
 
-  const handleSubmit = () => {
-    console.log("search", search);
-    console.log("filter", filter);
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleFilterAndSearch = () => {
+    let tempData = [...data];
+
+    // Filtrar por usuario
+    if (search) {
+      tempData = tempData.filter((order) =>
+        order.user.toLowerCase().includes(search.toLowerCase()),
+      );
+    }
+
+    // Ordenar según el filtro seleccionado
+    if (filter) {
+      if (filter.value === "orderDateAsc") {
+        tempData.sort(
+          (a, b) =>
+            new Date(a.order_date).getTime() - new Date(b.order_date).getTime(),
+        );
+      } else if (filter.value === "orderDateDes") {
+        tempData.sort(
+          (a, b) =>
+            new Date(b.order_date).getTime() - new Date(a.order_date).getTime(),
+        );
+      } else if (filter.value === "returnDateAsc") {
+        tempData.sort(
+          (a, b) =>
+            new Date(a.max_return_date).getTime() -
+            new Date(b.max_return_date).getTime(),
+        );
+      } else if (filter.value === "returnDateDes") {
+        tempData.sort(
+          (a, b) =>
+            new Date(b.max_return_date).getTime() -
+            new Date(a.max_return_date).getTime(),
+        );
+      }
+    }
+
+    setFilteredData(tempData);
+    setPage(0); // Reinicia a la primera página
   };
 
   return (
@@ -90,26 +141,29 @@ const Orders = () => {
         <div className="mt-1 flex justify-between space-x-4 px-2">
           <Select
             options={[
-              { value: "title", label: "Title" },
-              { value: "isbn", label: "ISBN" },
-              { value: "edition", label: "Edition" },
+              { value: "orderDateAsc", label: "Order Date (Ascending)" },
+              { value: "orderDateDes", label: "Order Date (Descending)" },
+              { value: "returnDateAsc", label: "Return Date (Ascending)" },
+              { value: "returnDateDes", label: "Return Date (Descending)" },
             ]}
             placeholder="Select a filter option"
             onChange={setFilter}
           />
-          <SearchBar search={search} setSearch={setSearch} />
+          <SearchBar
+            search={search}
+            setSearch={setSearch}
+            placeholder="Search by user"
+          />
           <div className="place-content-center">
             <button
               type="button"
               className="px-4 py-3 bg-blue-400 rounded-xl h-fit"
-              onClick={() => handleSubmit}
+              onClick={handleFilterAndSearch}
             >
               Search
             </button>
           </div>
-          <AddButton object="document" />
         </div>
-        <div className="flex space-x-2 mb-2 px-2" />
       </div>
       {/* Tabla */}
       <div className="mb-4 bg-gray-200 rounded-xl p-4">
@@ -141,11 +195,6 @@ const Orders = () => {
                   {row.getVisibleCells().map((cell) => (
                     <td
                       key={cell.id}
-                      onDoubleClick={() => {
-                        navigation(
-                          `/dashboard/document/edit/${row.original.id}`,
-                        );
-                      }}
                       className="px-6 cursor-pointer py-4 whitespace-nowrap text-sm text-gray-900"
                     >
                       {flexRender(
@@ -171,16 +220,16 @@ const Orders = () => {
           Previous
         </button>
         <span>
-          Page {page + 1} of {Math.ceil(data.length / pageSize)}
+          Page {page + 1} of {Math.ceil(filteredData.length / pageSize)}
         </span>
         <button
           type="button"
           onClick={() =>
             setPage((prev) =>
-              Math.min(prev + 1, Math.ceil(data.length / pageSize) - 1),
+              Math.min(prev + 1, Math.ceil(filteredData.length / pageSize) - 1),
             )
           }
-          disabled={page >= Math.ceil(data.length / pageSize) - 1}
+          disabled={page >= Math.ceil(filteredData.length / pageSize) - 1}
           className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
         >
           Next

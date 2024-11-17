@@ -12,19 +12,6 @@ import SearchBar from "../../Components/ReallySearchBar";
 import { useNavigate, useParams } from "react-router-dom";
 import Api from "@/services/Api";
 
-const data: AuthorTable[] = [
-  {
-    id: 1,
-    name: "John Doe",
-    birth_date: new Date("1990-01-15"),
-  },
-  {
-    id: 2,
-    name: "Jane Doe",
-    birth_date: new Date("1990-01-15"),
-  },
-];
-
 const columnHelper = createColumnHelper<AuthorTable>();
 
 const columns = [
@@ -34,7 +21,7 @@ const columns = [
   }),
   columnHelper.accessor("birth_date", {
     header: "Birth Date",
-    cell: (info) => info.getValue().toLocaleDateString(),
+    cell: (info) => info.getValue() || "N/A",
   }),
 ];
 
@@ -54,18 +41,26 @@ const AuthorsInfo = () => {
       return;
     }
     const fetchData = async () => {
-      const response = await Api.get(`dashboard/document/${id}/authors`);
+      const response = await Api.get(`dashboard/authors/${id}`);
       setData(response.data);
     };
     fetchData();
   });
 
-  const handleAuthorAdd = () => {
+  const handleAuthorAdd = async () => {
     if (!author) {
       return;
     }
-    const response = Api.post(`dashboard/author/${author}/document/${id}`);
+    console.log(author);
+    const response = await Api.post(
+      `dashboard/author/${author.id}/document/${id}`,
+    );
     console.log(response);
+    if (response.status !== 200) {
+      alert("Error adding author");
+    } else {
+      setData([...data, author]);
+    }
     alert("Author added successfully");
   };
 
@@ -139,7 +134,10 @@ const AuthorsInfo = () => {
         </div>
         <div className="p-4 flex flex-col bg-gray-200 justify-center flex-1  my-6 items-center">
           <div className="mb-2">
-            <SearchBar apiEndpoint="/authors" onSelectResult={setAuthor} />
+            <SearchBar
+              apiEndpoint="/dashboard/authors"
+              onSelectResult={setAuthor}
+            />
           </div>
           <button
             type="button"

@@ -27,26 +27,25 @@ const columns = [
   }),
   columnHelper.accessor("description", {
     header: "Description",
-    cell: (info) => info.getValue(),
+    cell: (info) => info.getValue().substring(0, 50) + "...",
   }),
-  columnHelper.accessor("publication_date", {
+  columnHelper.accessor("publication_year", {
     header: "Publication Date",
-    cell: (info) =>
-      info.getValue() ? new Date(info.getValue()).toLocaleDateString() : "",
+    cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("edition", {
     header: "Edition",
     cell: (info) => info.getValue(),
   }),
-  columnHelper.accessor("price", {
+  columnHelper.accessor("base_price", {
     header: "Price",
     cell: (info) => info.getValue(),
   }),
-  columnHelper.accessor("language", {
+  columnHelper.accessor("language_name", {
     header: "Language",
     cell: (info) => info.getValue(),
   }),
-  columnHelper.accessor("publisher", {
+  columnHelper.accessor("publisher_name", {
     header: "Publisher",
     cell: (info) => info.getValue(),
   }),
@@ -60,35 +59,58 @@ const Documentos = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [allData, setAllData] = useState<DocumentView[]>([]);
+  const [filteredData, setFilteredData] = useState<DocumentView[]>([]);
   const [data, setData] = useState<DocumentView[]>([]);
 
   const table = useReactTable<DocumentView>({
     columns,
-    data,
+    data: filteredData,
     getCoreRowModel: getCoreRowModel(),
   });
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await Api.get<DocumentView[]>("/books");
+      const response = await Api.get<DocumentView[]>("/dashboard/documents");
       setAllData(response.data);
+      setFilteredData(response.data);
     };
     fetchData();
   }, []);
 
   useEffect(() => {
+    // Actualiza los datos paginados cuando cambian `filteredData` o la página
     const start = (page - 1) * pageSize;
     const end = start + pageSize;
-    setData(allData.slice(start, end));
-  }, [page, pageSize, allData]);
+    setData(filteredData.slice(start, end));
+  }, [page, pageSize, filteredData]);
 
   const handleSubmit = () => {
-    const data = {
-      search,
-      filter,
-      rangeValues,
-    };
-    console.log(data);
+    let tempData = allData;
+
+    // Filtrar por búsqueda
+    if (search) {
+      tempData = tempData.filter((doc) => {
+        if (filter?.value === "title") {
+          return doc.title.toLowerCase().includes(search.toLowerCase());
+        }
+        if (filter?.value === "isbn") {
+          return doc.isbn.toLowerCase().includes(search.toLowerCase());
+        }
+        if (filter?.value === "edition") {
+          return doc.edition === parseInt(search, 10); // Comparar como número
+        }
+        return false;
+      });
+    }
+
+    // Filtrar por rango de precios
+    tempData = tempData.filter(
+      (doc) =>
+        doc.base_price >= rangeValues[0] && doc.base_price <= rangeValues[1],
+    );
+
+    setFilteredData(tempData); // Actualiza los datos filtrados
+    setPage(1); // Reinicia a la primera página
   };
 
   return (

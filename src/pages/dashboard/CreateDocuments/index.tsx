@@ -8,12 +8,19 @@ import type { Language } from "@/types/Language";
 import type { Publisher } from "@/types/Publisher";
 import { Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Dialog from "../Components/Dialog";
+import PublisherForm from "./AddAuthors/Components/Publisher Form";
 
 const DocumentForm: React.FC = () => {
   const navigation = useNavigate();
   const [languages, setLanguages] = useState<Language[]>();
   const [publishers, setPublishers] = useState<Publisher[]>();
   const [formats, setFormats] = useState<{ id: number; name: string }[]>();
+
+  const [isDialogOpen, setDialogOpen] = useState(false);
+
+  const openDialog = () => setDialogOpen(true);
+  const closeDialog = () => setDialogOpen(false);
   const {
     register,
     control,
@@ -23,6 +30,7 @@ const DocumentForm: React.FC = () => {
   } = useForm<Document>({
     defaultValues: {
       external_lend_allowed: false,
+      mean_rating: null,
     },
   });
 
@@ -48,6 +56,15 @@ const DocumentForm: React.FC = () => {
     fetchData();
   }, []);
 
+  const handleFileToBase64 = (file: File) => {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const onSubmit: SubmitHandler<Document> = async (data) => {
     if (data.acquisition_date) {
       // change to ISO format
@@ -56,20 +73,27 @@ const DocumentForm: React.FC = () => {
         .split("T")[0];
     }
 
-    if (data.cover_url) {
+    if (data.cover_url && data.cover_url.length > 0) {
       // for default input type file returns a FileList
       data.cover_url = data.cover_url[0];
+
+      const coverUrl = await handleFileToBase64(data.cover_url);
+      console.log(coverUrl);
+      data.cover_url = coverUrl;
+    } else {
+      data.cover_url = null;
     }
 
     console.log(data);
-
+    return;
     const response = await Api.post("/dashboard/document", data);
+    console.log(response);
 
-    if (response.status === 201) {
+    if (response.status === 200) {
       alert("Document created successfully");
-      const id = response.data.id;
+      const id = response.data;
       if (id) {
-        navigation(`/document/authors/${id}`);
+        navigation(`/dashboard/document/authors/${id}`);
         return;
       }
     }
@@ -135,7 +159,7 @@ const DocumentForm: React.FC = () => {
             </label>
             <input
               id="isbn"
-              {...register("isbn", {
+              {...register("ISBN", {
                 required: "ISBN is required",
                 validate: (value) =>
                   value.length === 13 ||
@@ -145,9 +169,9 @@ const DocumentForm: React.FC = () => {
               className="mt-1 p-2 block w-full border rounded-md shadow-sm"
               type="text"
             />
-            {errors.isbn && (
+            {errors.ISBN && (
               <span className="text-red-500 text-sm">
-                {errors.isbn.message}
+                {errors.ISBN.message}
               </span>
             )}
           </div>
@@ -283,7 +307,7 @@ const DocumentForm: React.FC = () => {
             </label>
             <input
               id="price"
-              {...register("base_price", {
+              {...register("price", {
                 valueAsNumber: true,
                 min: { value: 0, message: "Price must be a positive number" },
               })}
@@ -291,9 +315,9 @@ const DocumentForm: React.FC = () => {
               type="number"
               step={0.01}
             />
-            {errors.base_price && (
+            {errors.price && (
               <span className="text-red-500 text-sm">
-                {errors.base_price.message}
+                {errors.price.message}
               </span>
             )}
           </div>
@@ -310,26 +334,30 @@ const DocumentForm: React.FC = () => {
         </div>
 
         <div className="flex justify-between gap-8 place-content-start">
-          <div className=" flex-1 mb-4">
+          <div className="flex-1 mb-4">
             <label
-              htmlFor="mean_rating"
+              htmlFor="publisher_id"
               className="block text-sm font-medium text-gray-700"
             >
-              Mean Rating
+              Publisher
             </label>
-            <input
-              id="mean_rating"
-              {...register("mean_rating", {
+            <select
+              id="publisher_id"
+              {...register("publisher_id", {
+                required: "Publisher is required",
                 valueAsNumber: true,
-                min: { value: 0, message: "Rating must be a positive number" },
               })}
-              className="mt-1 p-2 block w-full border rounded-md shadow-sm"
-              type="number"
-              step={0.1}
-            />
-            {errors.mean_rating && (
+              className="mt-1 p-2 block w-full border rounded-md shadow-sm bg-white"
+            >
+              {publishers?.map((publisher) => (
+                <option key={publisher.id} value={publisher.id}>
+                  {publisher.name}
+                </option>
+              ))}
+            </select>
+            {errors.publisher_id && (
               <span className="text-red-500 text-sm">
-                {errors.mean_rating.message}
+                {errors.publisher_id.message}
               </span>
             )}
           </div>
@@ -424,7 +452,10 @@ const DocumentForm: React.FC = () => {
             </label>
             <select
               id="language_id"
-              {...register("language_id", { required: "Language is required" })}
+              {...register("language_id", {
+                required: "Language is required",
+                valueAsNumber: true,
+              })}
               className="mt-1 p-2 block w-full border rounded-md shadow-sm bg-white"
             >
               {languages?.map((language) => (
@@ -449,7 +480,10 @@ const DocumentForm: React.FC = () => {
             </label>
             <select
               id="format_id"
-              {...register("format_id", { required: "Format is required" })}
+              {...register("format_id", {
+                required: "Format is required",
+                valueAsNumber: true,
+              })}
               className="mt-1 p-2 block w-full border rounded-md shadow-sm bg-white"
             >
               {formats?.map((format) => (
@@ -467,37 +501,28 @@ const DocumentForm: React.FC = () => {
         </div>
 
         <div className="flex justify-between gap-8 place-content-start">
-          <div className="flex-1 mb-4">
-            <label
-              htmlFor="publisher_id"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Publisher
-            </label>
-            <select
-              id="publisher_id"
-              {...register("publisher_id", {
-                required: "Publisher is required",
-              })}
-              className="mt-1 p-2 block w-full border rounded-md shadow-sm bg-white"
-            >
-              {publishers?.map((publisher) => (
-                <option key={publisher.id} value={publisher.id}>
-                  {publisher.name}
-                </option>
-              ))}
-            </select>
-            {errors.publisher_id && (
-              <span className="text-red-500 text-sm">
-                {errors.publisher_id.message}
-              </span>
-            )}
-          </div>
-
           <div className="flex-1 mb-4" />
         </div>
 
         <div className="flex justify-end">
+          <span className="text-red-600 text-sm pr-4">
+            Not found publisher?
+          </span>
+          <button
+            type="button"
+            onClick={openDialog}
+            className="bg-green-500 h-10 hover:bg-green-700 text-white font-bold w-40 py-2 px-4 rounded "
+          >
+            Create pubisher
+          </button>
+
+          <Dialog
+            isOpen={isDialogOpen}
+            title="Create Publisher"
+            onClose={closeDialog}
+          >
+            <PublisherForm />
+          </Dialog>
           <button
             type="submit"
             className="w-40 ml-auto py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
