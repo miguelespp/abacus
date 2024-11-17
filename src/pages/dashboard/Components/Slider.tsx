@@ -30,7 +30,7 @@ const DualRangeSlider = ({
   };
 
   return (
-    <div className="flex flex-col items-center w-64 h-fit mt-4 pt-2">
+    <div className="flex flex-col items-center w-72 h-fit mt-4 pt-2">
       <RangeSlider
         min={min}
         max={max}
